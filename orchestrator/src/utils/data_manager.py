@@ -1,24 +1,15 @@
 import pandas as pd
 import logging
 
-<<<<<<< HEAD
 
 
 def fetch_data_from_rds():
-=======
-def fetch_data_from_rds(table_name):
->>>>>>> bdf381eaa88b4939ca2fdf2d4d6c2e390f0a072a
 
     RDS_HOST = "mlprojectdb.cx4k04y48cjc.eu-north-1.rds.amazonaws.com"
     RDS_PORT = 5432
     RDS_USER = "postgres"
     RDS_PASSWORD = "mlpipeline"
     RDS_DB_NAME = "telco_churn"
-<<<<<<< HEAD
-    TABLE_NAME = "prod_customers"
-=======
-    TABLE_NAME = table_name
->>>>>>> bdf381eaa88b4939ca2fdf2d4d6c2e390f0a072a
     
     # Création de l'URL de connexion avec psycopg2 explicite
     connection_url = f"postgresql+psycopg2://{RDS_USER}:{RDS_PASSWORD}@{RDS_HOST}:{RDS_PORT}/{RDS_DB_NAME}"
@@ -26,7 +17,6 @@ def fetch_data_from_rds(table_name):
     try:
         print("Connexion à RDS en cours...")
         # Requête SQL simple
-<<<<<<< HEAD
         query = f"""SELECT 
                     c.customer_id, 
                     c.gender, 
@@ -68,22 +58,11 @@ def fetch_data_from_rds(table_name):
                                 'no': False
                             }).astype(bool)
         print(f"Extraction réussie : {len(ref_df)} lignes de réf")
-=======
-        query = f"SELECT * FROM {TABLE_NAME}"
-        
-        # Passer directement l'URL de connexion à pandas (sans créer d'engine)
-        ref_df = pd.read_sql_query(query, connection_url)
-        
-        logging.info(f"Extraction réussie : {len(ref_df)} lignes de réf")
->>>>>>> bdf381eaa88b4939ca2fdf2d4d6c2e390f0a072a
         return ref_df
 
     except Exception as e:
         print(f"Erreur lors de la connexion à RDS : {e}")
         return None
-<<<<<<< HEAD
 
 
 
-=======
->>>>>>> bdf381eaa88b4939ca2fdf2d4d6c2e390f0a072a
