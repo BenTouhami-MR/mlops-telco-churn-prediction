@@ -3,13 +3,11 @@ version: "3.8"
 # ==============================================================================
 # CONFIGURATION COMMUNE AIRFLOW (ANCHORS)
 # ==============================================================================
-x-airflow-common:
-  &airflow-common
+x-airflow-common: &airflow-common
   build: ./orchestrator
   user: "${AIRFLOW_UID:-50000}:0"
   # env_file: .env
-  environment:
-    &airflow-common-env
+  environment: &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
@@ -30,8 +28,7 @@ x-airflow-common:
 
   networks:
     - airflow_net
-  depends_on:
-    &airflow-common-depends-on
+  depends_on: &airflow-common-depends-on
     redis:
       condition: service_healthy
     postgres:
@@ -50,8 +47,9 @@ services:
       POSTGRES_DB: airflow
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
+      - ./orchestrator/init_mlflow_db.sql:/docker-entrypoint-initdb.d/init_mlflow_db.sql
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "airflow"]
+      test: [ "CMD", "pg_isready", "-U", "airflow" ]
       interval: 10s
       retries: 5
       start_period: 5s
@@ -63,7 +61,7 @@ services:
     image: redis:latest
     container_name: redis-broker
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 30s
       retries: 50
@@ -82,7 +80,7 @@ services:
     ports:
       - "8080:8080"
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      test: [ "CMD", "curl", "--fail", "http://localhost:8080/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -98,7 +96,7 @@ services:
     command: scheduler
     container_name: airflow-scheduler
     healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
+      test: [ "CMD", "curl", "--fail", "http://localhost:8974/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -165,22 +163,16 @@ services:
       - ./mlruns:/mlflow/artifacts
     healthcheck:
       # Using a simpler check to see if the port is open
-      test: ["CMD-SHELL", "timeout 1s bash -c ':> /dev/tcp/127.0.0.1/5000' || exit 1"]
+      test: [ "CMD-SHELL", "timeout 1s bash -c ':> /dev/tcp/127.0.0.1/5000' || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s # Increased to give it more time to boot
     command: >
-      mlflow server 
-      --backend-store-uri sqlite:////mlflow/artifacts/mlflow.db 
-      --default-artifact-root mlflow-artifacts:/ 
-      --artifacts-destination /mlflow/artifacts
-      --host 0.0.0.0 
-      --port 5000
-      --serve-artifacts
-      --allowed-hosts "*"
-
-
+      mlflow server  --backend-store-uri postgresql://mlflow:mlflow@postgres/mlflow --default-artifact-root mlflow-artifacts:/  --artifacts-destination /mlflow/artifacts --host 0.0.0.0  --port 5000 --serve-artifacts --allowed-hosts "*"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   # ==========================================
   # MONITORING SERVICES
@@ -241,13 +233,7 @@ services:
     restart: always
     # This is the "Magic" line:
     entrypoint: >
-      bash -c "
-      echo 'Running MLflow initialization...';
-      python /app/init_mlflow.py;
-      echo 'Initialization complete. Starting Evidently Exporter...';
-      python /app/metrics_exporter.py" # Replace with the actual command from your Dockerfile
-
-
+      bash -c " echo 'Running MLflow initialization...'; python /app/init_mlflow.py; echo 'Initialization complete. Starting Evidently Exporter...'; python /app/metrics_exporter.py" # Replace with the actual command from your Dockerfile
   # ==========================================
   # OPTIONAL APP SERVICES (Commentés)
   # ==========================================
@@ -255,7 +241,7 @@ services:
   #   build: ./backend
   #   container_name: serving-api
   #   networks: [prod_net, airflow_net]
-  
+
   # n8n:
   #   image: n8nio/n8n:latest
   #   container_name: n8n
@@ -263,9 +249,9 @@ services:
   #   volumes: [n8n_data:/home/node/.n8n]
   #   networks: [prod_net]
 
-# ==============================================================================
-# DÉFINITION DES RÉSEAUX & VOLUMES
-# ==============================================================================
+  # ==============================================================================
+  # DÉFINITION DES RÉSEAUX & VOLUMES
+  # ==============================================================================
 
 
 networks:
