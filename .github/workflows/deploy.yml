@@ -53,8 +53,8 @@ jobs:
               cd mlops-app
             else
               git fetch origin
-              git reset --hard origin/main
-              git pull origin main
+              git reset --hard origin/dev
+              git pull origin dev
             fi
             
             echo " Stopping existing containers..."
