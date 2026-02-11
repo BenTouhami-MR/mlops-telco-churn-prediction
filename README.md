@@ -46,7 +46,6 @@ cd mlops-telco-churn-prediction
 ### 2. Start the Application
 ```bash
 # Start all services
-export AIRFLOW_UID=50000
 docker-compose up -d --build
 ```
 
