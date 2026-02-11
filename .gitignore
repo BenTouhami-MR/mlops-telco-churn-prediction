@@ -1,3 +1,5 @@
 notebooks/
 orchestrator/logs/
 mlruns/
+orchestrator/artifacts/
+reporting/artifacts/
