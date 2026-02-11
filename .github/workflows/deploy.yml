@@ -52,6 +52,8 @@ jobs:
               git clone ${{ github.server_url }}/${{ github.repository }}.git mlops-app
               cd mlops-app
             else
+              # Clean up log files that may have permission issues
+              sudo rm -rf orchestrator/logs/* || true
               git fetch origin
               git reset --hard origin/dev
               git pull origin dev
