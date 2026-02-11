@@ -23,7 +23,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-west-3  # Change to your preferred region
+          aws-region: eu-west-3  
 
       - name: Setup SSH key
         run: |
@@ -51,10 +51,13 @@ jobs:
               sudo rm -rf mlops-app
               git clone ${{ github.server_url }}/${{ github.repository }}.git mlops-app
               cd mlops-app
-            else
-              # Clean up log files and artifacts that may have permission issues
-              # We remove these directories because they are created by docker containers with different users
-              sudo rm -rf orchestrator/logs mlruns reporting/artifacts orchestrator/artifacts || true
+              # This allows git to work without deleting history
+              sudo chown -R $USER:docker orchestrator/logs mlruns reporting/artifacts orchestrator/artifacts || true
+              sudo chmod -R 777 orchestrator/logs mlruns reporting/artifacts orchestrator/artifacts || true
+              
+              # Stash any local changes to tracked files if any
+              git stash || true
+              
               git fetch origin
               git reset --hard origin/dev
               git pull origin dev
@@ -63,8 +66,6 @@ jobs:
             echo " Stopping existing containers..."
             docker-compose down || true
             
-            echo " Cleaning up old Docker resources..."
-            docker system prune -f || true
             
             echo " Building and starting containers..."
             export AIRFLOW_UID=${{ secrets.AIRFLOW_UID }}
